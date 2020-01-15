@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.1"
+#define version "SimuNav 0.2"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -107,8 +107,6 @@ void MainWindow::traitement()
     sendUdp(sUneTrame);
     sUneTrame=construitGGA(mPosCourante);
     sendUdp(sUneTrame);
-
-
 
 }
 
@@ -215,20 +213,25 @@ $GPGGA       : Type de trame
     QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
     QString sLatitude=sPosition.section(",",0,0);
+
     sLatitude=sLatitude.remove("°");
     sLatitude=sLatitude.remove(" ");
     sLatitude=sLatitude.remove("'");
+    sLatitude=sLatitude.rightJustified(9,'0');
     sLatitude=sLatitude.insert(sLatitude.count()-1,",");
+    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
 
     QString sLongitude=sPosition.section(",",1,1);
     sLongitude=sLongitude.remove("°");
     sLongitude=sLongitude.remove(" ");
     sLongitude=sLongitude.remove("'");
+    sLongitude=sLongitude.rightJustified(10,'0');
     sLongitude=sLongitude.insert(sLongitude.count()-1,",");
+    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
 
     QString sTrame=QString("$GPGGA,%1,%2,%3,1,15,1.0,0.0,M,,,,0000*").arg(sHeureCourante,sLatitude,sLongitude);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum;
+    sTrame=sTrame+sChecksum+0x0D+0x0a;
 
     return sTrame;
 
@@ -269,12 +272,12 @@ QString MainWindow::construitVTG(int nCap,double dSpeed)
     x.x,K = Speed, Km/hr
     */
 
-    QString sCap=QString::number(nCap,'f',1);
-    QString sSpeed=QString::number(dSpeed,'f',1);
-    QString sSpeed2=QString::number(dSpeed*1.852,'f',1);
+    QString sCap=QString::number(nCap,'f',1).rightJustified(5,'0');
+    QString sSpeed=QString::number(dSpeed,'f',1).rightJustified(5,'0');;
+    QString sSpeed2=QString::number(dSpeed*1.852,'f',1).rightJustified(5,'0');;
     QString sTrame=QString("$GPVTG,%1,T,%1,M,%2,N,%3,K*").arg(sCap,sSpeed,sSpeed2);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum;
+    sTrame=sTrame+sChecksum+0x0D+0x0a;
 
     return sTrame;
 
@@ -313,20 +316,26 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
     sLatitude=sLatitude.remove("°");
     sLatitude=sLatitude.remove(" ");
     sLatitude=sLatitude.remove("'");
+    sLatitude=sLatitude.rightJustified(9,'0');
     sLatitude=sLatitude.insert(sLatitude.count()-1,",");
+    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
+
 
     QString sLongitude=sPosition.section(",",1,1);
     sLongitude=sLongitude.remove("°");
     sLongitude=sLongitude.remove(" ");
     sLongitude=sLongitude.remove("'");
+    sLongitude=sLongitude.rightJustified(10,'0');
     sLongitude=sLongitude.insert(sLongitude.count()-1,",");
+    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
+
 
     QString sCap=QString::number(ui->sp_Cap->value(),'f',1);
     QString sSpeed=QString::number(ui->sp_Speed->value(),'f',1);
 
     QString sTrame=QString("$GPRMC,%1,%2,%3,%4,%5,%6,,,A*").arg(sHeureCourante,sLatitude,sLongitude,sSpeed,sCap,sDateCourante);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum;
+    sTrame=sTrame+sChecksum+0x0D+0x0a;
 
     return sTrame;
 
