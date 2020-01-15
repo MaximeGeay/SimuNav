@@ -41,6 +41,7 @@ private:
     QString construitGGA(QGeoCoordinate position);
     QString construitVTG(int nCap, double dSpeed);
     QString construitRMC(QGeoCoordinate position);
+    QString construitZDA(void);
     QString checksum(QString str);
     QUdpSocket *udpSocket;
 

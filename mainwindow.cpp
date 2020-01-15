@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.2"
+#define version "SimuNav 0.3"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -14,7 +14,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     mTimerDiff=new QTimer;
     udpSocket = new QUdpSocket(this);
-
 
     QObject::connect(ui->dial_cap,&QDial::valueChanged,this,&MainWindow::afficheCapSpeed);
     QObject::connect(ui->slid_Speed,&QSlider::valueChanged,this,&MainWindow::afficheCapSpeed);
@@ -104,6 +103,8 @@ void MainWindow::traitement()
      QString sUneTrame=construitRMC(mPosCourante);
     sendUdp(sUneTrame);
     sUneTrame=construitVTG(ui->sp_Cap->value(),ui->sp_Speed->value());
+    sendUdp(sUneTrame);
+    sUneTrame=construitZDA();
     sendUdp(sUneTrame);
     sUneTrame=construitGGA(mPosCourante);
     sendUdp(sUneTrame);
@@ -339,6 +340,33 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
 
     return sTrame;
 
+
+}
+
+QString MainWindow::construitZDA()
+{
+    /*
+$GPZDA
+
+Date & Time
+
+UTC, day, month, year, and local time zone.
+
+$--ZDA,hhmmss.ss,xx,xx,xxxx,xx,xx
+hhmmss.ss = UTC
+xx = Day, 01 to 31
+xx = Month, 01 to 12
+xxxx = Year
+xx = Local zone description, 00 to +/- 13 hours
+xx = Local zone minutes description (same sign as hours)
+*/
+
+    QDateTime currentDH=QDateTime::currentDateTimeUtc();
+    QString sTrame=QString("$GPZDA,%1,%2,%3,%4,00,00*").arg(currentDH.toString("hhmmss.zzz")).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
+    QString sChecksum=checksum(sTrame);
+    sTrame=sTrame+sChecksum+0x0D+0x0a;
+    qDebug()<<sTrame;
+    return sTrame;
 
 }
 
