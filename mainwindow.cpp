@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.4"
+#define version "SimuNav 0.5"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -239,7 +239,7 @@ $GPGGA       : Type de trame
     QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
     double dMsec=sHeureCourante.section(".",-1).toDouble();
     dMsec=dMsec/10;
-    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0);
+    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0).rightJustified(2,'0');
 
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
     QString sLatitude=sPosition.section(",",0,0);
@@ -398,11 +398,11 @@ xx = Local zone minutes description (same sign as hours)
     QString sHeureCourante=currentDH.toString("hhmmss.zzz");
     double dMsec=sHeureCourante.section(".",-1).toDouble();
     dMsec=dMsec/10;
-    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0);
+
+    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0).rightJustified(2,'0');
     QString sTrame=QString("$GPZDA,%1,%2,%3,%4,00,00*").arg(sHeureCourante).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
-    qDebug()<<sTrame;
     return sTrame;
 
 }
