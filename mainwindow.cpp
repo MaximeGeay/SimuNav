@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.3"
+#define version "SimuNav 0.4"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -99,15 +99,31 @@ void MainWindow::stop()
 void MainWindow::traitement()
 {
     mPosCourante=calcNextPos(mPosCourante,ui->sp_Cap->value(),ui->sp_Speed->value());
+    QString sUneTrame;
+    if(ui->cb_RMC->isChecked())
+    {
+        sUneTrame=construitRMC(mPosCourante);
+        sendUdp(sUneTrame);
+    }
 
-     QString sUneTrame=construitRMC(mPosCourante);
-    sendUdp(sUneTrame);
-    sUneTrame=construitVTG(ui->sp_Cap->value(),ui->sp_Speed->value());
-    sendUdp(sUneTrame);
-    sUneTrame=construitZDA();
-    sendUdp(sUneTrame);
-    sUneTrame=construitGGA(mPosCourante);
-    sendUdp(sUneTrame);
+    if(ui->cb_VTG->isChecked())
+    {
+        sUneTrame=construitVTG(ui->sp_Cap->value(),ui->sp_Speed->value());
+        sendUdp(sUneTrame);
+    }
+
+    if(ui->cb_ZDA->isChecked())
+    {
+        sUneTrame=construitZDA();
+        sendUdp(sUneTrame);
+    }
+
+    if(ui->cb_GGA->isChecked())
+    {
+        sUneTrame=construitGGA(mPosCourante);
+        sendUdp(sUneTrame);
+    }
+
 
 }
 
@@ -124,7 +140,7 @@ QGeoCoordinate MainWindow::calcNextPos(QGeoCoordinate lastPos, int nCap, double 
 void MainWindow::sendUdp(QString sUneTrame)
 {
     QByteArray datagram=sUneTrame.toLocal8Bit();
-    qint64 res=udpSocket->writeDatagram(datagram.data(), datagram.size(),QHostAddress(ui->le_IpDest->text()), ui->sp_UdpPort->value());
+    qint64 res=udpSocket->writeDatagram(datagram.data(), datagram.size(),QHostAddress(ui->le_IpDest->text().remove(" ")), ui->sp_UdpPort->value());
     if(res==-1)
         ui->statusbar->showMessage("Trame non émise");
     else
@@ -176,6 +192,11 @@ void MainWindow::sauvParam()
     settings.setValue("LongMin",ui->sp_MinLong->value());
     settings.setValue("Cap",ui->sp_Cap->value());
     settings.setValue("Speed",ui->sp_Speed->value());
+    settings.setValue("GPGGA",ui->cb_GGA->isChecked());
+    settings.setValue("GPVTG",ui->cb_VTG->isChecked());
+    settings.setValue("GPRMC",ui->cb_RMC->isChecked());
+    settings.setValue("GPZDA",ui->cb_ZDA->isChecked());
+
 }
 
 void MainWindow::restaureParam()
@@ -192,6 +213,10 @@ void MainWindow::restaureParam()
     ui->sp_MinLong->setValue(settings.value("LongMin",31.5).toDouble());
     ui->sp_Cap->setValue(settings.value("Cap",0).toInt());
     ui->sp_Speed->setValue(settings.value("Speed",5).toDouble());
+    ui->cb_GGA->setChecked(settings.value("GPGGA",false).toBool());
+    ui->cb_VTG->setChecked(settings.value("GPGVTG",false).toBool());
+    ui->cb_RMC->setChecked(settings.value("GPRMC",false).toBool());
+    ui->cb_ZDA->setChecked(settings.value("GPZDA",false).toBool());
 
 }
 
@@ -212,6 +237,10 @@ $GPGGA       : Type de trame
 */
 
     QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
+    double dMsec=sHeureCourante.section(".",-1).toDouble();
+    dMsec=dMsec/10;
+    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0);
+
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
     QString sLatitude=sPosition.section(",",0,0);
 
@@ -234,9 +263,13 @@ $GPGGA       : Type de trame
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
 
+
+
     return sTrame;
 
 }
+
+
 
 QString MainWindow::construitVTG(int nCap,double dSpeed)
 {
@@ -362,7 +395,11 @@ xx = Local zone minutes description (same sign as hours)
 */
 
     QDateTime currentDH=QDateTime::currentDateTimeUtc();
-    QString sTrame=QString("$GPZDA,%1,%2,%3,%4,00,00*").arg(currentDH.toString("hhmmss.zzz")).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
+    QString sHeureCourante=currentDH.toString("hhmmss.zzz");
+    double dMsec=sHeureCourante.section(".",-1).toDouble();
+    dMsec=dMsec/10;
+    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0);
+    QString sTrame=QString("$GPZDA,%1,%2,%3,%4,00,00*").arg(sHeureCourante).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
     qDebug()<<sTrame;
