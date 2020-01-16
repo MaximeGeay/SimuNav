@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.5"
+#define version "SimuNav 0.6"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -344,6 +344,7 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
 
 
     QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
+
     QString sDateCourante=QDateTime::currentDateTimeUtc().toString("ddMMyy");
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
     QString sLatitude=sPosition.section(",",0,0);
@@ -367,7 +368,7 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
     QString sCap=QString::number(ui->sp_Cap->value(),'f',1);
     QString sSpeed=QString::number(ui->sp_Speed->value(),'f',1);
 
-    QString sTrame=QString("$GPRMC,%1,%2,%3,%4,%5,%6,,,A*").arg(sHeureCourante,sLatitude,sLongitude,sSpeed,sCap,sDateCourante);
+    QString sTrame=QString("$GPRMC,%1,A,%2,%3,%4,%5,%6,,,A*").arg(sHeureCourante,sLatitude,sLongitude,sSpeed,sCap,sDateCourante);
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
 
