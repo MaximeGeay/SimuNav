@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.6"
+#define version "SimuNav 0.7"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(this->mTimerDiff,&QTimer::timeout,this,&MainWindow::traitement);
     QObject::connect(ui->btn_Diff,&QPushButton::clicked,this,&MainWindow::diffuser);
     QObject::connect(ui->btn_Stop,&QPushButton::clicked,this,&MainWindow::stop);
+    QObject::connect(ui->cb_Scout,&QCheckBox::stateChanged,this,&MainWindow::gestAffichage);
     this->setWindowTitle(version);
 
     restaureParam();
@@ -100,6 +101,9 @@ void MainWindow::traitement()
 {
     mPosCourante=calcNextPos(mPosCourante,ui->sp_Cap->value(),ui->sp_Speed->value());
     QString sUneTrame;
+
+    ui->l_PosCourante->setText(QString("Position actuelle : %1").arg(mPosCourante.toString(QGeoCoordinate::DegreesMinutesWithHemisphere)));
+
     if(ui->cb_RMC->isChecked())
     {
         sUneTrame=construitRMC(mPosCourante);
@@ -124,7 +128,19 @@ void MainWindow::traitement()
         sendUdp(sUneTrame);
     }
 
+    if(ui->cb_Scout->isChecked())
+    {
+        sUneTrame=construitScout(mPosCourante);
+        sendUdp(sUneTrame);
+    }
 
+
+}
+
+void MainWindow::gestAffichage()
+{
+    ui->sp_NBalise->setEnabled(ui->cb_Scout->isChecked());
+    ui->sp_Immersion->setEnabled(ui->cb_Scout->isChecked());
 }
 
 QGeoCoordinate MainWindow::calcNextPos(QGeoCoordinate lastPos, int nCap, double dSpeed)
@@ -132,6 +148,7 @@ QGeoCoordinate MainWindow::calcNextPos(QGeoCoordinate lastPos, int nCap, double 
     double dDistance= dSpeed/3600*ui->sp_Periode->value()*1852;
 
     QGeoCoordinate currentPos=lastPos.atDistanceAndAzimuth(dDistance,nCap);
+    currentPos.setAltitude(ui->sp_Immersion->value());
 
     return currentPos;
 
@@ -196,6 +213,9 @@ void MainWindow::sauvParam()
     settings.setValue("GPVTG",ui->cb_VTG->isChecked());
     settings.setValue("GPRMC",ui->cb_RMC->isChecked());
     settings.setValue("GPZDA",ui->cb_ZDA->isChecked());
+    settings.setValue("GGAScout",ui->cb_Scout->isChecked());
+    settings.setValue("BaliseID",ui->sp_NBalise->value());
+    settings.setValue("Immersion",ui->sp_Immersion->value());
 
 }
 
@@ -217,6 +237,10 @@ void MainWindow::restaureParam()
     ui->cb_VTG->setChecked(settings.value("GPGVTG",false).toBool());
     ui->cb_RMC->setChecked(settings.value("GPRMC",false).toBool());
     ui->cb_ZDA->setChecked(settings.value("GPZDA",false).toBool());
+    ui->cb_Scout->setChecked(settings.value("GGAScout",false).toBool());
+    ui->sp_NBalise->setValue(settings.value("BaliseID",1).toInt());
+    ui->sp_Immersion->setValue(settings.value("Immersion",10).toDouble());
+    gestAffichage();
 
 }
 
@@ -406,6 +430,89 @@ xx = Local zone minutes description (same sign as hours)
     sTrame=sTrame+sChecksum+0x0D+0x0a;
     return sTrame;
 
+}
+
+QString MainWindow::construitScout(QGeoCoordinate position)
+{
+    /*
+$GPGGA, Header to identify the report (fixed).
+HHMMSS.ss, The valid time of the position. See Note 1.
+DDMM.mmmmmm, Latitude. See Note 2.
+N, Direction of latitude (N or S).
+DDDMM.mmmmmm, Longitude. See Note 2.
+E, Direction of longitude (E or W).
+2,12, Fixed values.
+A.AA, Accuracy (semi-major axis). See Note 3.
+Z.ZZ, Height, see Note 4.
+M,0.0,M,0.0,0000 Fixed values.
+*hh Checksum. See Note 5.
+CRLF Termination characters, carriage return plus linefeed.
+1. The fixed tail of characters appended to the end of the sentence is there as
+packing for string decoders that require a complete sentence.
+The numbers in the fixed tail show the vehicle tracking in the optimum con-
+figuration and quality.
+2. Latitude and longitude values are always displayed in the
+DDDMM.mmmmmm format.
+All values are relative to the WGS84 datum. Leading zeros are not required.
+Latitude range (DD) = 0 to 89; Longitude range (DDD) = 0 to 179.
+3. The accuracy value is the semi-major axis value for the vehicle. It is always
+displayed in meters and is fixed to two DPs.
+4. The height value is always displayed in meters and fixed to DPs.
+Because this string format has no concept of depth, depth values for the
+vehicle should be displayed as negative values so that, for example when
+depth = 56.7m, depth is formatted as –56.7.
+5. The checksum is the 8-bit exclusive OR (no start or stop bits) of all characters
+in the sentence, including "," delimiters, between but not including the "$"
+and the "*" delimiters.
+The hexadecimal value of the most significant and least significant 4 bits of
+the result is converted to two ASCII characters (0 to 9, A to F) for transmis-
+sion. The most significant character is transmitted first.
+The maximum number of characters in a sentence is 82, consisting of a maximum
+of 79 characters between the starting "$" and the terminating <CR><LF>.
+Example
+$GPGGA,123456.43,5020.234502,N,134.324576,E,2,12,6.7,–56.78,M,0.0,M,0.0,0000*hh
+$GPGGA,065935.000,4800.000,N,00500.500,W,2,11,1.2,5.4,M,12.5,M,1.3,0001*hh
+
+*/
+
+
+    QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
+    double dMsec=sHeureCourante.section(".",-1).toDouble();
+    dMsec=dMsec/10;
+    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0).rightJustified(2,'0');
+
+    QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
+    QString sLatitude=sPosition.section(",",0,0);
+
+    sLatitude=sLatitude.remove("°");
+    sLatitude=sLatitude.remove(" ");
+    sLatitude=sLatitude.remove("'");
+    sLatitude=sLatitude.rightJustified(9,'0');
+    sLatitude=sLatitude.insert(sLatitude.count()-1,",");
+    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
+
+    QString sLongitude=sPosition.section(",",1,1);
+    sLongitude=sLongitude.remove("°");
+    sLongitude=sLongitude.remove(" ");
+    sLongitude=sLongitude.remove("'");
+    sLongitude=sLongitude.rightJustified(10,'0');
+    sLongitude=sLongitude.insert(sLongitude.count()-1,",");
+    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
+
+    QString sImmersion;
+    sImmersion=sImmersion.setNum(ui->sp_Immersion->value(),'f',1);
+
+    QString sBaliseID;
+    sBaliseID=sBaliseID.setNum(ui->sp_NBalise->value()).rightJustified(4,'0');
+
+    QString sTrame=QString("$GPGGA,%1,%2,%3,2,12,1.2,-%4,M,0.0,M,0.0,%5*").arg(sHeureCourante,sLatitude,sLongitude,sImmersion,
+                                                                               sBaliseID);
+    QString sChecksum=checksum(sTrame);
+    sTrame=sTrame+sChecksum+0x0D+0x0a;
+
+
+
+    return sTrame;
 }
 
 QString MainWindow::checksum(QString str)

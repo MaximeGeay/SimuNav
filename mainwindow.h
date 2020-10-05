@@ -26,6 +26,7 @@ private slots:
     void diffuser(void);
     void stop(void);
     void traitement(void);
+    void gestAffichage(void);
 
 private:
     Ui::MainWindow *ui;
@@ -42,6 +43,8 @@ private:
     QString construitVTG(int nCap, double dSpeed);
     QString construitRMC(QGeoCoordinate position);
     QString construitZDA(void);
+    QString construitScout(QGeoCoordinate position);
+
     QString checksum(QString str);
     QUdpSocket *udpSocket;
 
