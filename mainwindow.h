@@ -44,6 +44,7 @@ private:
     QString construitRMC(QGeoCoordinate position);
     QString construitZDA(void);
     QString construitScout(QGeoCoordinate position);
+    QString construitHDT(int nCap);
 
     QString checksum(QString str);
     QUdpSocket *udpSocket;

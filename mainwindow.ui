@@ -359,6 +359,13 @@
          </property>
         </spacer>
        </item>
+       <item row="0" column="4">
+        <widget class="QCheckBox" name="cb_HDT">
+         <property name="text">
+          <string>GPHDT</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

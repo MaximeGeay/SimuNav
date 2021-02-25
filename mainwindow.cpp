@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.7"
+#define version "SimuNav 0.8"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -36,16 +36,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::afficheCapSpeed()
 {
-   int nCap=ui->dial_cap->value();
+    int nCap=ui->dial_cap->value();
     if(nCap>180)
         nCap=nCap-180;
     else
         nCap=nCap+180;
-   ui->sp_Cap->setValue(nCap);
+    ui->sp_Cap->setValue(nCap);
 
-   double dSpeed=ui->slid_Speed->value();
-   dSpeed=dSpeed/10;
-   ui->sp_Speed->setValue(dSpeed);
+    double dSpeed=ui->slid_Speed->value();
+    dSpeed=dSpeed/10;
+    ui->sp_Speed->setValue(dSpeed);
 
 }
 
@@ -134,8 +134,13 @@ void MainWindow::traitement()
         sendUdp(sUneTrame);
     }
 
-
+    if(ui->cb_HDT->isChecked())
+    {
+        sUneTrame=construitHDT(ui->sp_Cap->value());
+        sendUdp(sUneTrame);
+    }
 }
+
 
 void MainWindow::gestAffichage()
 {
@@ -167,16 +172,16 @@ void MainWindow::sendUdp(QString sUneTrame)
 double MainWindow::latMinToDec(QString sLatitude)
 {
     //format : H,DD,MM.ddddd,
-        //         S,12,30.54443
-        int nDeg=sLatitude.section(",",1,1).toInt();
-        double dMin=sLatitude.section(",",2,2).toDouble();
-        QString cHemi=sLatitude.section(",",0,0);
+    //         S,12,30.54443
+    int nDeg=sLatitude.section(",",1,1).toInt();
+    double dMin=sLatitude.section(",",2,2).toDouble();
+    QString cHemi=sLatitude.section(",",0,0);
 
-        double dLatDec=nDeg+(dMin/60);
-        if(cHemi=="S")
-            dLatDec=-dLatDec;
+    double dLatDec=nDeg+(dMin/60);
+    if(cHemi=="S")
+        dLatDec=-dLatDec;
 
-        return dLatDec;
+    return dLatDec;
 
 }
 
@@ -216,6 +221,7 @@ void MainWindow::sauvParam()
     settings.setValue("GGAScout",ui->cb_Scout->isChecked());
     settings.setValue("BaliseID",ui->sp_NBalise->value());
     settings.setValue("Immersion",ui->sp_Immersion->value());
+    settings.setValue("GPHDT",ui->cb_HDT->isChecked());
 
 }
 
@@ -240,6 +246,7 @@ void MainWindow::restaureParam()
     ui->cb_Scout->setChecked(settings.value("GGAScout",false).toBool());
     ui->sp_NBalise->setValue(settings.value("BaliseID",1).toInt());
     ui->sp_Immersion->setValue(settings.value("Immersion",10).toDouble());
+    ui->cb_HDT->setChecked(settings.value("GPHDT",false).toBool());
     gestAffichage();
 
 }
@@ -515,17 +522,37 @@ $GPGGA,065935.000,4800.000,N,00500.500,W,2,11,1.2,5.4,M,12.5,M,1.3,0001*hh
     return sTrame;
 }
 
+QString MainWindow::construitHDT(int nCap)
+{
+    /*
+   $GPHDT,123.456,T*00
+   Heading from true north message fields
+   Field 	Meaning
+   0 	Message ID $GPHDT
+   1 	Heading in degrees
+   2 	T: Indicates heading relative to True North
+   3 	The checksum data, always begins with *
+   */
+
+       QString sCap=QString::number(nCap,'f',1).rightJustified(5,'0');
+       QString sTrame=QString("$GPHDT,%1,T*").arg(sCap);
+       QString sChecksum=checksum(sTrame);
+       sTrame=sTrame+sChecksum+0x0D+0x0a;
+
+       return sTrame;
+}
+
 QString MainWindow::checksum(QString str)
 {
-        unsigned char crc=0;
-        //$ n'entre pas dans le calcul du checksum
-        for(int i=1; i<str.length() && str.at(i).toLatin1()!='*';i++)
-        {
+    unsigned char crc=0;
+    //$ n'entre pas dans le calcul du checksum
+    for(int i=1; i<str.length() && str.at(i).toLatin1()!='*';i++)
+    {
 
-           crc ^=str.at(i).toLatin1();
-        }
-        QString sCRC=QString("%1").arg(crc,2,16,QLatin1Char('0'));
-        return sCRC;
+        crc ^=str.at(i).toLatin1();
+    }
+    QString sCRC=QString("%1").arg(crc,2,16,QLatin1Char('0'));
+    return sCRC;
 }
 
 
