@@ -112,7 +112,21 @@
        <string>Navigation</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Sonde (m)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QSpinBox" name="sp_Cap">
+         <property name="maximum">
+          <number>359</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
         <widget class="QDial" name="dial_cap">
          <property name="maximum">
           <number>359</number>
@@ -140,7 +154,53 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
+       <item row="3" column="3">
+        <widget class="QDoubleSpinBox" name="sp_Speed">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <double>50.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Vitesse( nd)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0" colspan="4">
+        <widget class="QLabel" name="l_PosCourante">
+         <property name="text">
+          <string>Position actuelle:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>219</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="3">
         <widget class="QSlider" name="slid_Speed">
          <property name="maximum">
           <number>500</number>
@@ -165,43 +225,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QSpinBox" name="sp_Cap">
-         <property name="maximum">
-          <number>359</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>219</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="1" column="2">
-        <widget class="QDoubleSpinBox" name="sp_Speed">
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <double>50.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
+       <item row="4" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Cap (°)</string>
@@ -211,20 +235,16 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Vitesse( nd)</string>
+       <item row="5" column="1">
+        <widget class="QDoubleSpinBox" name="sp_Sonde">
+         <property name="decimals">
+          <number>1</number>
          </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
+         <property name="maximum">
+          <double>9999.000000000000000</double>
          </property>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="3">
-        <widget class="QLabel" name="l_PosCourante">
-         <property name="text">
-          <string>Position actuelle:</string>
+         <property name="value">
+          <double>10.000000000000000</double>
          </property>
         </widget>
        </item>
@@ -267,86 +287,21 @@
        <string>Trames à diffuser</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="2" colspan="2">
+       <item row="1" column="2" colspan="2">
         <widget class="QCheckBox" name="cb_RMC">
          <property name="text">
-          <string>GPRMC</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
-        <widget class="QSpinBox" name="sp_NBalise"/>
-       </item>
-       <item row="1" column="2" colspan="2">
-        <widget class="QCheckBox" name="cb_ZDA">
-         <property name="text">
-          <string>GPZDA</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="4">
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="5">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>Immersion</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="6">
-        <widget class="QDoubleSpinBox" name="sp_Immersion">
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <double>999.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="cb_Scout">
-         <property name="text">
-          <string>GGA Scout</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="cb_GGA">
-         <property name="text">
-          <string>GPGGA</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Identifiant balise</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="Line" name="line_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <string>--RMC</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QCheckBox" name="cb_VTG">
+        <widget class="QCheckBox" name="cb_GGA">
          <property name="text">
-          <string>GPVTG</string>
+          <string>--GGA</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="7">
+       <item row="3" column="7">
         <spacer name="horizontalSpacer_4">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -359,10 +314,108 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="4">
+       <item row="3" column="1">
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Immersion</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="6">
+        <widget class="QDoubleSpinBox" name="sp_Immersion">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <double>999.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="cb_Scout">
+         <property name="text">
+          <string>GGA Scout</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4">
         <widget class="QCheckBox" name="cb_HDT">
          <property name="text">
-          <string>GPHDT</string>
+          <string>--HDT</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2" colspan="2">
+        <widget class="QCheckBox" name="cb_ZDA">
+         <property name="text">
+          <string>--ZDA</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Identifiant balise</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QSpinBox" name="sp_NBalise"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="cb_VTG">
+         <property name="text">
+          <string>--VTG</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="QCheckBox" name="cb_DBT">
+         <property name="text">
+          <string>--DBT</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QComboBox" name="cb_identifier">
+         <item>
+          <property name="text">
+           <string>GP</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>IN</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>SD</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Identifier</string>
          </property>
         </widget>
        </item>
@@ -375,37 +428,6 @@
        <string>Position initiale</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Latitude</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="cb_HemiLat">
-         <item>
-          <property name="text">
-           <string>N</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>S</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QSpinBox" name="sp_DegLat">
-         <property name="maximum">
-          <number>59</number>
-         </property>
-         <property name="value">
-          <number>47</number>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="3">
         <widget class="QDoubleSpinBox" name="sp_MinLat">
          <property name="decimals">
@@ -416,13 +438,6 @@
          </property>
          <property name="value">
           <double>34.500000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Longitude</string>
          </property>
         </widget>
        </item>
@@ -440,6 +455,16 @@
          </item>
         </widget>
        </item>
+       <item row="0" column="2">
+        <widget class="QSpinBox" name="sp_DegLat">
+         <property name="maximum">
+          <number>59</number>
+         </property>
+         <property name="value">
+          <number>47</number>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="2">
         <widget class="QSpinBox" name="sp_DegLong">
          <property name="maximum">
@@ -450,6 +475,20 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cb_HemiLat">
+         <item>
+          <property name="text">
+           <string>N</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>S</string>
+          </property>
+         </item>
+        </widget>
+       </item>
        <item row="1" column="3">
         <widget class="QDoubleSpinBox" name="sp_MinLong">
          <property name="maximum">
@@ -457,6 +496,20 @@
          </property>
          <property name="value">
           <double>31.500000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Longitude</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Latitude</string>
          </property>
         </widget>
        </item>

@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.8"
+#define version "SimuNav 0.9"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -139,6 +139,11 @@ void MainWindow::traitement()
         sUneTrame=construitHDT(ui->sp_Cap->value());
         sendUdp(sUneTrame);
     }
+    if(ui->cb_DBT->isChecked())
+    {
+        sUneTrame=construitDBT(ui->sp_Sonde->value());
+        sendUdp(sUneTrame);
+    }
 }
 
 
@@ -222,6 +227,9 @@ void MainWindow::sauvParam()
     settings.setValue("BaliseID",ui->sp_NBalise->value());
     settings.setValue("Immersion",ui->sp_Immersion->value());
     settings.setValue("GPHDT",ui->cb_HDT->isChecked());
+    settings.setValue("SDDBT",ui->cb_DBT->isChecked());
+    settings.setValue("Sonde",ui->sp_Sonde->value());
+    settings.setValue("Identifier",ui->cb_identifier->currentIndex());
 
 }
 
@@ -247,6 +255,9 @@ void MainWindow::restaureParam()
     ui->sp_NBalise->setValue(settings.value("BaliseID",1).toInt());
     ui->sp_Immersion->setValue(settings.value("Immersion",10).toDouble());
     ui->cb_HDT->setChecked(settings.value("GPHDT",false).toBool());
+    ui->cb_DBT->setChecked(settings.value("SDDBT",false).toBool());
+    ui->sp_Sonde->setValue(settings.value("Sonde",10).toDouble());
+    ui->cb_identifier->setCurrentIndex(settings.value("Identifier",0).toInt());
     gestAffichage();
 
 }
@@ -267,6 +278,7 @@ $GPGGA       : Type de trame
 
 */
 
+    QString sId=ui->cb_identifier->currentText();
     QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
     double dMsec=sHeureCourante.section(".",-1).toDouble();
     dMsec=dMsec/10;
@@ -290,7 +302,7 @@ $GPGGA       : Type de trame
     sLongitude=sLongitude.insert(sLongitude.count()-1,",");
     sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
 
-    QString sTrame=QString("$GPGGA,%1,%2,%3,1,15,1.0,0.0,M,,,,0000*").arg(sHeureCourante,sLatitude,sLongitude);
+    QString sTrame=QString("$%1GGA,%2,%3,%4,1,15,6.0,0.0,M,,,,0000*").arg(sId,sHeureCourante,sLatitude,sLongitude);
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
 
@@ -336,11 +348,11 @@ QString MainWindow::construitVTG(int nCap,double dSpeed)
     x.x,N = Speed, knots
     x.x,K = Speed, Km/hr
     */
-
+    QString sId=ui->cb_identifier->currentText();
     QString sCap=QString::number(nCap,'f',1).rightJustified(5,'0');
     QString sSpeed=QString::number(dSpeed,'f',1).rightJustified(5,'0');;
     QString sSpeed2=QString::number(dSpeed*1.852,'f',1).rightJustified(5,'0');;
-    QString sTrame=QString("$GPVTG,%1,T,%1,M,%2,N,%3,K*").arg(sCap,sSpeed,sSpeed2);
+    QString sTrame=QString("$%1VTG,%2,T,%2,M,%3,N,%4,K*").arg(sId,sCap,sSpeed,sSpeed2);
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
 
@@ -373,7 +385,7 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
 
 */
 
-
+    QString sId=ui->cb_identifier->currentText();
     QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
 
     QString sDateCourante=QDateTime::currentDateTimeUtc().toString("ddMMyy");
@@ -399,7 +411,7 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
     QString sCap=QString::number(ui->sp_Cap->value(),'f',1);
     QString sSpeed=QString::number(ui->sp_Speed->value(),'f',1);
 
-    QString sTrame=QString("$GPRMC,%1,A,%2,%3,%4,%5,%6,,,A*").arg(sHeureCourante,sLatitude,sLongitude,sSpeed,sCap,sDateCourante);
+    QString sTrame=QString("$%1RMC,%2,A,%3,%4,%5,%6,%7,,,A*").arg(sId,sHeureCourante,sLatitude,sLongitude,sSpeed,sCap,sDateCourante);
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
 
@@ -425,14 +437,14 @@ xxxx = Year
 xx = Local zone description, 00 to +/- 13 hours
 xx = Local zone minutes description (same sign as hours)
 */
-
+    QString sId=ui->cb_identifier->currentText();
     QDateTime currentDH=QDateTime::currentDateTimeUtc();
     QString sHeureCourante=currentDH.toString("hhmmss.zzz");
     double dMsec=sHeureCourante.section(".",-1).toDouble();
     dMsec=dMsec/10;
 
     sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0).rightJustified(2,'0');
-    QString sTrame=QString("$GPZDA,%1,%2,%3,%4,00,00*").arg(sHeureCourante).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
+    QString sTrame=QString("$%1ZDA,%2,%3,%4,%5,00,00*").arg(sId).arg(sHeureCourante).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
     QString sChecksum=checksum(sTrame);
     sTrame=sTrame+sChecksum+0x0D+0x0a;
     return sTrame;
@@ -533,13 +545,28 @@ QString MainWindow::construitHDT(int nCap)
    2 	T: Indicates heading relative to True North
    3 	The checksum data, always begins with *
    */
-
+       QString sId=ui->cb_identifier->currentText();
        QString sCap=QString::number(nCap,'f',1).rightJustified(5,'0');
-       QString sTrame=QString("$GPHDT,%1,T*").arg(sCap);
+       QString sTrame=QString("$%1HDT,%2,T*").arg(sId,sCap);
        QString sChecksum=checksum(sTrame);
        sTrame=sTrame+sChecksum+0x0D+0x0a;
 
        return sTrame;
+}
+
+QString MainWindow::construitDBT(double dSonde)
+{
+    QString sId=ui->cb_identifier->currentText();
+    QString sSonde=QString::number(dSonde,'f',1);
+    double dSondePieds=dSonde*3.2808;
+    double dSondeBrasses= dSonde/1.8288;
+    QString sSondePieds=QString::number(dSondePieds,'f',1);
+    QString sSondeBrasses=QString::number(dSondeBrasses,'f',1);
+    QString sTrame=QString("$%1DBT,%2,f,%3,M,%4,F*").arg(sId,sSondePieds,sSonde,sSondeBrasses);
+    QString sChecksum=checksum(sTrame);
+    sTrame=sTrame+sChecksum+0x0D+0x0a;
+
+    return sTrame;
 }
 
 QString MainWindow::checksum(QString str)

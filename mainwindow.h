@@ -45,7 +45,7 @@ private:
     QString construitZDA(void);
     QString construitScout(QGeoCoordinate position);
     QString construitHDT(int nCap);
-
+    QString construitDBT(double dSonde);
     QString checksum(QString str);
     QUdpSocket *udpSocket;
 
