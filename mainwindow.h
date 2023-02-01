@@ -42,6 +42,7 @@ private:
     QString construitGGA(QGeoCoordinate position);
     QString construitVTG(int nCap, double dSpeed);
     QString construitRMC(QGeoCoordinate position);
+    QString construitGLL(QGeoCoordinate position);
     QString construitZDA(void);
     QString construitScout(QGeoCoordinate position);
     QString construitHDT(int nCap);

@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QDateTime>
 
-#define version "SimuNav 0.9"
+#define version "SimuNav 1.0"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -125,6 +125,12 @@ void MainWindow::traitement()
     if(ui->cb_GGA->isChecked())
     {
         sUneTrame=construitGGA(mPosCourante);
+        sendUdp(sUneTrame);
+    }
+
+    if(ui->cb_GLL->isChecked())
+    {
+        sUneTrame=construitGLL(mPosCourante);
         sendUdp(sUneTrame);
     }
 
@@ -304,8 +310,8 @@ $GPGGA       : Type de trame
 
     QString sTrame=QString("$%1GGA,%2,%3,%4,1,15,6.0,0.0,M,,,,0000*").arg(sId,sHeureCourante,sLatitude,sLongitude);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum+0x0D+0x0a;
-
+   // sTrame=sTrame+sChecksum+0x0d+0x0a;
+    sTrame=sTrame+sChecksum+'\r'+'\n';
 
 
     return sTrame;
@@ -354,8 +360,8 @@ QString MainWindow::construitVTG(int nCap,double dSpeed)
     QString sSpeed2=QString::number(dSpeed*1.852,'f',1).rightJustified(5,'0');;
     QString sTrame=QString("$%1VTG,%2,T,%2,M,%3,N,%4,K*").arg(sId,sCap,sSpeed,sSpeed2);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum+0x0D+0x0a;
-
+    // sTrame=sTrame+sChecksum+0x0d+0x0a;
+     sTrame=sTrame+sChecksum+'\r'+'\n';
     return sTrame;
 
 
@@ -413,10 +419,83 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
 
     QString sTrame=QString("$%1RMC,%2,A,%3,%4,%5,%6,%7,,,A*").arg(sId,sHeureCourante,sLatitude,sLongitude,sSpeed,sCap,sDateCourante);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum+0x0D+0x0a;
-
+    // sTrame=sTrame+sChecksum+0x0d+0x0a;
+     sTrame=sTrame+sChecksum+'\r'+'\n';
     return sTrame;
 
+
+}
+
+QString MainWindow::construitGLL(QGeoCoordinate position)
+{
+    /*
+
+GLL - Geographic Position - Latitude/Longitude
+
+This is one of the sentences commonly emitted by GPS units.
+
+        1       2 3        4 5         6 7
+        |       | |        | |         | |
+ $--GLL,ddmm.mm,a,dddmm.mm,a,hhmmss.ss,a*hh<CR><LF>
+NMEA 2.3:
+ $--GLL,ddmm.mm,a,dddmm.mm,a,hhmmss.ss,a,m*hh<CR><LF>
+
+Field Number:
+
+    Latitude, dd is degrees, mm.mm is minutes
+
+    N or S (North or South)
+
+    Longitude, dd is degrees, mm.mm is minutes
+
+    E or W (East or West)
+
+    UTC of this position, hh is hours, mm is minutes, ss.ss is seconds
+
+    Status A - Data Valid, V - Data Invalid
+
+    FAA mode indicator (NMEA 2.3 and later)
+
+    Checksum
+
+The number of digits past the decimal point for Time, Latitude and Longitude is model dependent.
+
+Example: $GNGLL,4404.14012,N,12118.85993,W,001037.00,A,A*67
+
+
+*/
+
+    QString sId=ui->cb_identifier->currentText();
+    QString sHeureCourante=QDateTime::currentDateTimeUtc().toString("hhmmss.zzz");
+    double dMsec=sHeureCourante.section(".",-1).toDouble();
+    dMsec=dMsec/10;
+    sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0).rightJustified(2,'0');
+
+    QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
+    QString sLatitude=sPosition.section(",",0,0);
+
+    sLatitude=sLatitude.remove("°");
+    sLatitude=sLatitude.remove(" ");
+    sLatitude=sLatitude.remove("'");
+    sLatitude=sLatitude.rightJustified(9,'0');
+    sLatitude=sLatitude.insert(sLatitude.count()-1,",");
+    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
+
+    QString sLongitude=sPosition.section(",",1,1);
+    sLongitude=sLongitude.remove("°");
+    sLongitude=sLongitude.remove(" ");
+    sLongitude=sLongitude.remove("'");
+    sLongitude=sLongitude.rightJustified(10,'0');
+    sLongitude=sLongitude.insert(sLongitude.count()-1,",");
+    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
+
+    QString sTrame=QString("$%1GLL,%2,%3,%4,A,A*").arg(sId,sLatitude,sLongitude,sHeureCourante);
+    QString sChecksum=checksum(sTrame);
+   // sTrame=sTrame+sChecksum+0x0d+0x0a;
+    sTrame=sTrame+sChecksum+'\r'+'\n';
+
+
+    return sTrame;
 
 }
 
@@ -446,7 +525,8 @@ xx = Local zone minutes description (same sign as hours)
     sHeureCourante=sHeureCourante.section(".",0,0)+"."+QString::number(dMsec,'f',0).rightJustified(2,'0');
     QString sTrame=QString("$%1ZDA,%2,%3,%4,%5,00,00*").arg(sId).arg(sHeureCourante).arg(currentDH.toString("dd")).arg(currentDH.toString("MM")).arg(currentDH.toString("yyyy"));
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum+0x0D+0x0a;
+    // sTrame=sTrame+sChecksum+0x0d+0x0a;
+     sTrame=sTrame+sChecksum+'\r'+'\n';
     return sTrame;
 
 }
@@ -527,8 +607,8 @@ $GPGGA,065935.000,4800.000,N,00500.500,W,2,11,1.2,5.4,M,12.5,M,1.3,0001*hh
     QString sTrame=QString("$GPGGA,%1,%2,%3,2,12,1.2,-%4,M,0.0,M,0.0,%5*").arg(sHeureCourante,sLatitude,sLongitude,sImmersion,
                                                                                sBaliseID);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum+0x0D+0x0a;
-
+    // sTrame=sTrame+sChecksum+0x0d+0x0a;
+     sTrame=sTrame+sChecksum+'\r'+'\n';
 
 
     return sTrame;
@@ -549,7 +629,8 @@ QString MainWindow::construitHDT(int nCap)
        QString sCap=QString::number(nCap,'f',1).rightJustified(5,'0');
        QString sTrame=QString("$%1HDT,%2,T*").arg(sId,sCap);
        QString sChecksum=checksum(sTrame);
-       sTrame=sTrame+sChecksum+0x0D+0x0a;
+       // sTrame=sTrame+sChecksum+0x0d+0x0a;
+        sTrame=sTrame+sChecksum+'\r'+'\n';
 
        return sTrame;
 }
@@ -564,8 +645,8 @@ QString MainWindow::construitDBT(double dSonde)
     QString sSondeBrasses=QString::number(dSondeBrasses,'f',1);
     QString sTrame=QString("$%1DBT,%2,f,%3,M,%4,F*").arg(sId,sSondePieds,sSonde,sSondeBrasses);
     QString sChecksum=checksum(sTrame);
-    sTrame=sTrame+sChecksum+0x0D+0x0a;
-
+    // sTrame=sTrame+sChecksum+0x0d+0x0a;
+     sTrame=sTrame+sChecksum+'\r'+'\n';
     return sTrame;
 }
 
