@@ -4,8 +4,9 @@
 #include <QDebug>
 #include <QSettings>
 #include <QDateTime>
+#include <QMessageBox>
 
-#define version "SimuNav 1.0"
+#define version "SimuNav 1.1"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -23,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(ui->btn_Diff,&QPushButton::clicked,this,&MainWindow::diffuser);
     QObject::connect(ui->btn_Stop,&QPushButton::clicked,this,&MainWindow::stop);
     QObject::connect(ui->cb_Scout,&QCheckBox::stateChanged,this,&MainWindow::gestAffichage);
+    QObject::connect(ui->actionQuitter,&QAction::triggered,this,&MainWindow::close);
+    QObject::connect(ui->actionApropos,&QAction::triggered,this,&MainWindow::aPropos);
     this->setWindowTitle(version);
 
     restaureParam();
@@ -662,5 +665,13 @@ QString MainWindow::checksum(QString str)
     QString sCRC=QString("%1").arg(crc,2,16,QLatin1Char('0'));
     return sCRC;
 }
+
+void MainWindow::aPropos()
+{
+    QString sText=QString("%1\nSimulateur de trames de navigation\n\nSources: https://github.com/MaximeGeay/SimuNav\n"
+                          "Développé avec Qt 5.14.1\nMaxime Geay\nNovembre 2023").arg(version);
+    QMessageBox::information(this,"Informations",sText);
+}
+
 
 
