@@ -441,7 +441,7 @@
           <number>3</number>
          </property>
          <property name="maximum">
-          <double>100.000000000000000</double>
+          <double>60.000000000000000</double>
          </property>
          <property name="value">
           <double>34.500000000000000</double>
@@ -465,7 +465,7 @@
        <item row="0" column="2">
         <widget class="QSpinBox" name="sp_DegLat">
          <property name="maximum">
-          <number>59</number>
+          <number>89</number>
          </property>
          <property name="value">
           <number>47</number>
@@ -499,7 +499,7 @@
        <item row="1" column="3">
         <widget class="QDoubleSpinBox" name="sp_MinLong">
          <property name="maximum">
-          <double>100.000000000000000</double>
+          <double>60.000000000000000</double>
          </property>
          <property name="value">
           <double>31.500000000000000</double>
