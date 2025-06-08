@@ -4,8 +4,9 @@
 #include <QDebug>
 #include <QSettings>
 #include <QDateTime>
+#include <QMessageBox>
 
-#define version "SimuNav 1.0"
+#define version "SimuNav 1.2"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -23,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(ui->btn_Diff,&QPushButton::clicked,this,&MainWindow::diffuser);
     QObject::connect(ui->btn_Stop,&QPushButton::clicked,this,&MainWindow::stop);
     QObject::connect(ui->cb_Scout,&QCheckBox::stateChanged,this,&MainWindow::gestAffichage);
+    QObject::connect(ui->actionQuitter,&QAction::triggered,this,&MainWindow::close);
+    QObject::connect(ui->actionApropos,&QAction::triggered,this,&MainWindow::aPropos);
     this->setWindowTitle(version);
 
     restaureParam();
@@ -292,21 +295,38 @@ $GPGGA       : Type de trame
 
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
     QString sLatitude=sPosition.section(",",0,0);
+    QString sHemi;
+    if (sLatitude.contains("N"))
+        sHemi="N";
+    else
+        sHemi="S";
+    QString sLatDeg=sLatitude.section("°",0,0);
+    sLatDeg=sLatDeg.rightJustified(2,'0');
+    QString sLatMin=sLatitude.section("°",1,1);
+    sLatMin=sLatMin.remove(" ");
+    sLatMin=sLatMin.remove("'");
+    sLatMin=sLatMin.remove("N");
+    sLatMin=sLatMin.remove("S");
+    sLatMin=sLatMin.rightJustified(6,'0');
 
-    sLatitude=sLatitude.remove("°");
-    sLatitude=sLatitude.remove(" ");
-    sLatitude=sLatitude.remove("'");
-    sLatitude=sLatitude.rightJustified(9,'0');
-    sLatitude=sLatitude.insert(sLatitude.count()-1,",");
-    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
+    sLatitude=QString("%1%2,%3").arg(sLatDeg).arg(sLatMin).arg(sHemi);
 
     QString sLongitude=sPosition.section(",",1,1);
-    sLongitude=sLongitude.remove("°");
-    sLongitude=sLongitude.remove(" ");
-    sLongitude=sLongitude.remove("'");
-    sLongitude=sLongitude.rightJustified(10,'0');
-    sLongitude=sLongitude.insert(sLongitude.count()-1,",");
-    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
+    QString sEW;
+    if (sLongitude.contains("W"))
+        sEW="W";
+    else
+        sEW="E";
+    QString sLongDeg=sLongitude.section("°",0,0);
+    sLongDeg=sLongDeg.rightJustified(3,'0');
+    QString sLongMin=sLongitude.section("°",1,1);
+    sLongMin=sLongMin.remove(" ");
+    sLongMin=sLongMin.remove("'");
+    sLongMin=sLongMin.remove("W");
+    sLongMin=sLongMin.remove("E");
+    sLongMin=sLongMin.rightJustified(6,'0');
+
+    sLongitude=QString("%1%2,%3").arg(sLongDeg).arg(sLongMin).arg(sEW);
 
     QString sTrame=QString("$%1GGA,%2,%3,%4,1,15,6.0,0.0,M,,,,0000*").arg(sId,sHeureCourante,sLatitude,sLongitude);
     QString sChecksum=checksum(sTrame);
@@ -396,22 +416,40 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
 
     QString sDateCourante=QDateTime::currentDateTimeUtc().toString("ddMMyy");
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
-    QString sLatitude=sPosition.section(",",0,0);
-    sLatitude=sLatitude.remove("°");
-    sLatitude=sLatitude.remove(" ");
-    sLatitude=sLatitude.remove("'");
-    sLatitude=sLatitude.rightJustified(9,'0');
-    sLatitude=sLatitude.insert(sLatitude.count()-1,",");
-    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
 
+    QString sLatitude=sPosition.section(",",0,0);
+    QString sHemi;
+    if (sLatitude.contains("N"))
+        sHemi="N";
+    else
+        sHemi="S";
+    QString sLatDeg=sLatitude.section("°",0,0);
+    sLatDeg=sLatDeg.rightJustified(2,'0');
+    QString sLatMin=sLatitude.section("°",1,1);
+    sLatMin=sLatMin.remove(" ");
+    sLatMin=sLatMin.remove("'");
+    sLatMin=sLatMin.remove("N");
+    sLatMin=sLatMin.remove("S");
+    sLatMin=sLatMin.rightJustified(6,'0');
+
+    sLatitude=QString("%1%2,%3").arg(sLatDeg).arg(sLatMin).arg(sHemi);
 
     QString sLongitude=sPosition.section(",",1,1);
-    sLongitude=sLongitude.remove("°");
-    sLongitude=sLongitude.remove(" ");
-    sLongitude=sLongitude.remove("'");
-    sLongitude=sLongitude.rightJustified(10,'0');
-    sLongitude=sLongitude.insert(sLongitude.count()-1,",");
-    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
+    QString sEW;
+    if (sLongitude.contains("W"))
+        sEW="W";
+    else
+        sEW="E";
+    QString sLongDeg=sLongitude.section("°",0,0);
+    sLongDeg=sLongDeg.rightJustified(3,'0');
+    QString sLongMin=sLongitude.section("°",1,1);
+    sLongMin=sLongMin.remove(" ");
+    sLongMin=sLongMin.remove("'");
+    sLongMin=sLongMin.remove("W");
+    sLongMin=sLongMin.remove("E");
+    sLongMin=sLongMin.rightJustified(6,'0');
+
+    sLongitude=QString("%1%2,%3").arg(sLongDeg).arg(sLongMin).arg(sEW);
 
 
     QString sCap=QString::number(ui->sp_Cap->value(),'f',1);
@@ -421,6 +459,7 @@ A            : mode de positionnement A=autonome, D=DGPS, E=DR
     QString sChecksum=checksum(sTrame);
     // sTrame=sTrame+sChecksum+0x0d+0x0a;
      sTrame=sTrame+sChecksum+'\r'+'\n';
+     qDebug()<<sTrame;
     return sTrame;
 
 
@@ -473,21 +512,39 @@ Example: $GNGLL,4404.14012,N,12118.85993,W,001037.00,A,A*67
 
     QString sPosition=position.toString(QGeoCoordinate::DegreesMinutesWithHemisphere);
     QString sLatitude=sPosition.section(",",0,0);
+    QString sHemi;
+    if (sLatitude.contains("N"))
+        sHemi="N";
+    else
+        sHemi="S";
+    QString sLatDeg=sLatitude.section("°",0,0);
+    sLatDeg=sLatDeg.rightJustified(2,'0');
+    QString sLatMin=sLatitude.section("°",1,1);
+    sLatMin=sLatMin.remove(" ");
+    sLatMin=sLatMin.remove("'");
+    sLatMin=sLatMin.remove("N");
+    sLatMin=sLatMin.remove("S");
+    sLatMin=sLatMin.rightJustified(6,'0');
 
-    sLatitude=sLatitude.remove("°");
-    sLatitude=sLatitude.remove(" ");
-    sLatitude=sLatitude.remove("'");
-    sLatitude=sLatitude.rightJustified(9,'0');
-    sLatitude=sLatitude.insert(sLatitude.count()-1,",");
-    sLatitude=sLatitude.section(",",0,0).leftJustified(9,'0')+","+sLatitude.section(",",1,1);
+    sLatitude=QString("%1%2,%3").arg(sLatDeg).arg(sLatMin).arg(sHemi);
 
     QString sLongitude=sPosition.section(",",1,1);
-    sLongitude=sLongitude.remove("°");
-    sLongitude=sLongitude.remove(" ");
-    sLongitude=sLongitude.remove("'");
-    sLongitude=sLongitude.rightJustified(10,'0');
-    sLongitude=sLongitude.insert(sLongitude.count()-1,",");
-    sLongitude=sLongitude.section(",",0,0).leftJustified(10,'0')+","+sLongitude.section(",",1,1);
+    QString sEW;
+    if (sLongitude.contains("W"))
+        sEW="W";
+    else
+        sEW="E";
+    QString sLongDeg=sLongitude.section("°",0,0);
+    sLongDeg=sLongDeg.rightJustified(3,'0');
+    QString sLongMin=sLongitude.section("°",1,1);
+    sLongMin=sLongMin.remove(" ");
+    sLongMin=sLongMin.remove("'");
+    sLongMin=sLongMin.remove("W");
+    sLongMin=sLongMin.remove("E");
+    sLongMin=sLongMin.rightJustified(6,'0');
+
+    sLongitude=QString("%1%2,%3").arg(sLongDeg).arg(sLongMin).arg(sEW);
+
 
     QString sTrame=QString("$%1GLL,%2,%3,%4,A,A*").arg(sId,sLatitude,sLongitude,sHeureCourante);
     QString sChecksum=checksum(sTrame);
@@ -662,5 +719,13 @@ QString MainWindow::checksum(QString str)
     QString sCRC=QString("%1").arg(crc,2,16,QLatin1Char('0'));
     return sCRC;
 }
+
+void MainWindow::aPropos()
+{
+    QString sText=QString("%1\nSimulateur de trames de navigation\n\nSources: https://github.com/MaximeGeay/SimuNav\n"
+                          "Développé avec Qt 5.14.1\nMaxime Geay\nNovembre 2023").arg(version);
+    QMessageBox::information(this,"Informations",sText);
+}
+
 
 

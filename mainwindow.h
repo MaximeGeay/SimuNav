@@ -27,6 +27,7 @@ private slots:
     void stop(void);
     void traitement(void);
     void gestAffichage(void);
+    void aPropos();
 
 private:
     Ui::MainWindow *ui;

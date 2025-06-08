@@ -441,7 +441,7 @@
           <number>3</number>
          </property>
          <property name="maximum">
-          <double>100.000000000000000</double>
+          <double>60.000000000000000</double>
          </property>
          <property name="value">
           <double>34.500000000000000</double>
@@ -465,7 +465,7 @@
        <item row="0" column="2">
         <widget class="QSpinBox" name="sp_DegLat">
          <property name="maximum">
-          <number>59</number>
+          <number>89</number>
          </property>
          <property name="value">
           <number>47</number>
@@ -499,7 +499,7 @@
        <item row="1" column="3">
         <widget class="QDoubleSpinBox" name="sp_MinLong">
          <property name="maximum">
-          <double>100.000000000000000</double>
+          <double>60.000000000000000</double>
          </property>
          <property name="value">
           <double>31.500000000000000</double>
@@ -531,11 +531,29 @@
      <x>0</x>
      <y>0</y>
      <width>515</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFichier">
+    <property name="title">
+     <string>Fichier</string>
+    </property>
+    <addaction name="actionApropos"/>
+    <addaction name="actionQuitter"/>
+   </widget>
+   <addaction name="menuFichier"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionQuitter">
+   <property name="text">
+    <string>Quitter</string>
+   </property>
+  </action>
+  <action name="actionApropos">
+   <property name="text">
+    <string>A propos</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
